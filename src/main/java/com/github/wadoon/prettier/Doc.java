@@ -1,11 +1,17 @@
 package com.github.wadoon.prettier;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Implements pretty-printing after Wadler with strict evaluation.
+ * Impelementation is described in <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.34.2200&rep=rep1&type=pdf">this paper.</a>
+ *
+ *
  * @author Alexander Weigl
  * @version 1 (1/7/22)
  */
@@ -128,7 +134,7 @@ public abstract class Doc {
             for (Doc element : elements) {
                 if (element instanceof SpaceOrNl && !flat)
                     return indent;
-                width= element.size(flat, indent, width);
+                width = element.size(flat, indent, width);
             }
             return width;
         }
@@ -166,8 +172,6 @@ public abstract class Doc {
         public SDoc reduce(boolean flat, int indent, int curWidth, int maxWidth) {
             return reduce0(flat, indent, curWidth, maxWidth);
         }
-
-
     }
 
     public static final class Nest extends MDoc {
@@ -266,5 +270,23 @@ public abstract class Doc {
 
     public static Doc nest(Doc... docs) {
         return new Nest(docs);
+    }
+
+    public static String asString(Doc doc, int width) {
+        return print(layout(doc, width));
+    }
+
+    public static String print(SDoc layout) {
+        StringWriter sw = new StringWriter();
+        try {
+            layout.append(sw);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sw.toString();
+    }
+
+    public static SDoc layout(Doc doc, int width) {
+        return doc.reduce(false, 0, 0, width);
     }
 }
