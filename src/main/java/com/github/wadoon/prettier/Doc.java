@@ -9,8 +9,7 @@ import java.util.stream.Collectors;
 
 /**
  * Implements pretty-printing after Wadler with strict evaluation.
- * Impelementation is described in <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.34.2200&rep=rep1&type=pdf">this paper.</a>
- *
+ * Implementation is described in <a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.34.2200&rep=rep1&type=pdf">this paper.</a>
  *
  * @author Alexander Weigl
  * @version 1 (1/7/22)
@@ -21,6 +20,10 @@ public abstract class Doc {
     public abstract SDoc reduce(boolean flat, int indent, int curWidth, int maxWidth);
 
     public abstract int size(boolean flat, int indent, int width);
+
+    public Doc append(Doc text) {
+        return seq(this, text);
+    }
 
     public static final Doc NIL = new Doc() {
         @Override
@@ -43,6 +46,7 @@ public abstract class Doc {
             return "Nil";
         }
     };
+
 
     public static final class Text extends Doc {
         private final String value;
@@ -260,9 +264,22 @@ public abstract class Doc {
         return new Text(value);
     }
 
+    public static Doc text(Object value) {
+        return new Text(value.toString());
+    }
+
     public static Doc space() {
         return new SpaceOrNl();
     }
+
+    public static Doc space(int indent) {
+        if (indent == 0) return text("");
+        else if (indent == 1) return space();
+        Doc[] a = new Doc[indent];
+        Arrays.fill(a, space());
+        return seq(a);
+    }
+
 
     public static Doc group(Doc... stmt) {
         return new Group(stmt);
